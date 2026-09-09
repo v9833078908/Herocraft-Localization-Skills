@@ -1,0 +1,13 @@
+key;ru;en;de;Explanation
+UI_START;Начать;Start;Starten;Кнопка в главном меню, слот 96 px
+UI_SETTINGS;Настройки;Settings;Einstellungen;
+UI_KEEP;Крепость;Keep;;Название главного здания, вкладка интерфейса
+TIP_REPAIR;На ремонт нужно {0} досок и {1} монет.;Repairing costs {0} planks and {1} coins.;;Тултип, числа приходят из движка
+TIP_STORM;<color=#FFCC00>Шторм</color> начнётся через {0} с.;<color=#FFCC00>Storm</color> hits in {0}s.;;Предупреждение над таймером
+HINT_GATE;Нажмите %KEY_USE%, чтобы открыть ворота.;Press %KEY_USE% to open the gate.;;%KEY_USE% подставляется движком по раскладке
+LOG_HARVEST;Собрано 12 мешков зерна.;Harvested 12 sacks of grain.;;Строка журнала, число фиксированное
+DLG_MAEVE_1;Мэйв: Ветер сегодня злой, кузнец.$Заходи, пока ворота открыты.;Maeve: The wind is foul today, smith.$Come in while the gate is open.;;`$` - разделитель строк движка
+DLG_BRAN_ANGRY;Бран: Да чтоб тебя ветром унесло, бездельник!;Bran: May the wind take you, you idle wretch!;;Грубость персонажа намеренная
+DLG_BRAN_CALM;Бран: Крепость держится. Пока держится.;Bran: The keep holds. For now.;;Тот же персонаж, спокойный тон
+NOTE_TOWER;Башня Ветров$Уровень 3;Wind Tower$Level 3;;Подпись на карте, две строки
+END_WINTER;Зима прошла, и Крепость Ветров впервые за три года встретила весну без осады.;Winter passed, and Windward Keep met spring without a siege for the first time in three years.;;Эпилог главы, длинная проза

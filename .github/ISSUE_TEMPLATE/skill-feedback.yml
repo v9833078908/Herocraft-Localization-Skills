@@ -1,0 +1,67 @@
+name: Скилл повёл себя неправильно
+description: Агент сделал не то, что нужно, или инструкция мешает работе
+title: "[скилл] "
+labels: ["skill-feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Заполните то, что знаете. Ничего технического знать не нужно -
+        достаточно описать, что вы просили и что получилось.
+
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Какой скилл
+      options:
+        - preparing-weblate-loc-kits (подготовка кита)
+        - game-glossary-builder (глоссарий)
+        - weblate-machinery-prompts (промпты движка)
+        - не знаю / несколько
+    validations:
+      required: true
+
+  - type: input
+    id: harness
+    attributes:
+      label: Каким агентом пользовались
+      placeholder: Claude Code, Codex CLI, Cursor, omp, Gemini CLI...
+    validations:
+      required: true
+
+  - type: textarea
+    id: asked
+    attributes:
+      label: Что вы попросили
+      description: Скопируйте свою фразу агенту, если она сохранилась.
+    validations:
+      required: true
+
+  - type: textarea
+    id: happened
+    attributes:
+      label: Что агент сделал
+      description: Кратко: какой файл написал, о чём спросил, что предложил.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Что он должен был сделать
+    validations:
+      required: true
+
+  - type: input
+    id: project
+    attributes:
+      label: Игра и проект в Weblate
+      description: Без вложения закрытых файлов - только названия.
+
+  - type: checkboxes
+    id: confirmations
+    attributes:
+      label: Проверьте перед отправкой
+      options:
+        - label: В issue нет API-ключей, токенов и закрытых игровых текстов
+          required: true
