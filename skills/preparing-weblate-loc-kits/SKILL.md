@@ -89,7 +89,7 @@ For PO loc kits, each populated non-language prose column declared in profile `c
 
 ```bash
 rm -rf /tmp/loc-kit-check
-uv run python -m loc_kit_ingest "NAME.import.csv" --source-lang SOURCE_CODE --out /tmp/loc-kit-check
+uv run python -m loc_kit_ingest "NAME.import.csv" --source-lang ru --out /tmp/loc-kit-check
 ```
 
 `--source-lang` is mandatory even though column order should infer the same result; pass `ru` unless the user stated another source language. Ready means exit 0, expected counts, 0 skipped, the settled source language, every expected resolved language, and no ERROR diagnostics. Confirm metadata columns are interpreted or ignored as intended. Inspect and report warnings. Opening in a spreadsheet is not proof.
