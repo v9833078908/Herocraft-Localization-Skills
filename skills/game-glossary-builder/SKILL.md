@@ -28,11 +28,12 @@ only to review/edit the skill, do not resume their glossary or interview them.
 Output a UTF-8 CSV with proper CSV quoting, a header and one row per source term:
 
 ```csv
-en,ru,explanation,flags
-Iron,Железо,Ресурс для изготовления предметов.,
+ru,en,explanation,flags
+Железо,Iron,Ресурс для изготовления предметов.,
 ```
 
-Use the confirmed source language first, selected target languages in input order,
+Use the source language first — Russian (`ru`) by default, because Hero Craft
+kits are authored in Russian — then selected target languages in input order,
 then exactly `explanation,flags`. Keep the `flags` column even when every cell is
 empty. No technical keys, sections, approval-status tags or invented columns.
 A source term may have several target languages in the same row. The example
@@ -60,10 +61,14 @@ measuring the file. No pre-interview scan and no invented term-count estimates. 
   Steam или другом магазине. Если страницы ещё нет — название и краткое описание.”
   If they have no link, research by title and developer after the interview;
   confirm uncertain identity. An unreleased game is not a reason to refuse.
-- The intended original language: “На каком языке исходные тексты игры?”
-  Ask a separate Weblate-source clarification only if the producer explicitly
-  describes a different authoring and import language. File order alone cannot
-  settle that decision.
+- The original language, confirmed rather than opened: Russian (`ru`) is the
+  default, so ask for a correction only — “Исходный язык — русский, верно?”.
+  Record the answer either way, and state the assumption in the report when the
+  producer does not answer. Switch away from `ru` only on an explicit statement
+  or on kit evidence that contradicts it (the Russian column empty while another
+  language is fully populated). Column order alone never settles it, and a
+  separate Weblate-source clarification is needed only when the producer
+  describes a different authoring and import language.
 - Requested languages: “Для каких языков нужен глоссарий?” Offer all supplied
   languages as a scope option, not an assertion about unseen column contents.
 - Scope: “Включаем названия предметов, персонажей и мест, а также повторяющиеся

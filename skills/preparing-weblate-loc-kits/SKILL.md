@@ -13,12 +13,12 @@ Convert exports into the HCGameLoc import contract without inventing identities,
 
 Before writing the import file, ask the user and record:
 
-1. **What is the source language?** This is semantic project metadata and MUST NOT be inferred from column order, population, filenames, or apparent text quality. The source language must be the first language column because the UI infers it from that position.
+1. **Is the source language Russian?** Russian (`ru`) is the default: Hero Craft kits are authored in Russian, so ask for a correction rather than an answer — "Исходный язык — русский, верно?" — and proceed on the default when the user does not object, stating the assumption in the report. The source language is still semantic project metadata: it MUST NOT be *derived* from column order, population, filenames, or apparent text quality, and it must be the first language column because the UI infers it from that position. Leave `ru` only on an explicit statement by the user, or when the kit itself contradicts the default (an empty or clearly machine-translated Russian column beside a fully authored other language); in that case stop and confirm before writing anything.
 2. **Which file is the structural reference?** Use it for metadata roles and ordering conventions, not as permission to discard languages absent from it.
 3. **What do key, metadata, ID, explanation, and context columns mean?** Ask whether legacy columns must remain and whether their values should be empty. If explanations must be created, confirm their language; default to the source language, not the conversation language. Never invent game identities or usage context.
 4. **How should unverifiable duplicate or malformed rows be handled?** Recommend quarantine; never guess translations or IDs.
 
-Investigate file-provided facts—encoding, delimiter, escaping, sheets, columns, and row widths—with tools rather than asking. Do not generate the final import until source language and metadata semantics are explicit.
+Investigate file-provided facts—encoding, delimiter, escaping, sheets, columns, and row widths—with tools rather than asking. Do not generate the final import until the source language is settled—`ru` by default, or a user-stated alternative—and metadata semantics are explicit.
 
 ## Target contract
 
@@ -28,7 +28,7 @@ Produce semicolon-delimited UTF-8 CSV with standard quoting:
 key;<metadata columns>;<source-language>;<all target languages>;Explanation
 ```
 
-The reference schema is authoritative for metadata roles and order. Retain every resolved language from the source even when absent from the reference. Put the user-confirmed source language first, then targets in their original input order unless the reference explicitly fixes language order. `key` becomes the PO unit identity. `Explanation` is optional unless the reference contains it or the user asks to create contextual explanations; then keep the exact `Explanation` header as the last column. Empty cells are normal.
+The reference schema is authoritative for metadata roles and order. Retain every resolved language from the source even when absent from the reference. Put the settled source language first—`ru` unless the user stated another one—then targets in their original input order unless the reference explicitly fixes language order. `key` becomes the PO unit identity. `Explanation` is optional unless the reference contains it or the user asks to create contextual explanations; then keep the exact `Explanation` header as the last column. Empty cells are normal.
 
 A metadata header that resembles a language code is dangerous: `Id` can mean Indonesian. Rename a legacy engine column descriptively, for example `Unity legacy ID`. If its values are intentionally empty, keep them empty; the importer will ignore the column. If an authoritative numeric ID exists, retain it as a location reference. Do not populate an empty legacy column with generated values unless the user explicitly requests that behavior.
 
@@ -92,12 +92,12 @@ rm -rf /tmp/loc-kit-check
 uv run python -m loc_kit_ingest "NAME.import.csv" --source-lang SOURCE_CODE --out /tmp/loc-kit-check
 ```
 
-`--source-lang` is mandatory even though column order should infer the same result. Ready means exit 0, expected counts, 0 skipped, the user-confirmed source language, every expected resolved language, and no ERROR diagnostics. Confirm metadata columns are interpreted or ignored as intended. Inspect and report warnings. Opening in a spreadsheet is not proof.
+`--source-lang` is mandatory even though column order should infer the same result; pass `ru` unless the user stated another source language. Ready means exit 0, expected counts, 0 skipped, the settled source language, every expected resolved language, and no ERROR diagnostics. Confirm metadata columns are interpreted or ignored as intended. Inspect and report warnings. Opening in a spreadsheet is not proof.
 
 When `Explanation` is populated, inspect the generated PO profile and source-language PO:
 
 - `comments` maps `Explanation` and every retained prose metadata column separately, in column order;
-- `source_lang` equals the user's confirmed source language;
+- `source_lang` equals the settled source language (`ru` by default);
 - only that language's PO contains the generated `#.` developer comments;
 - parse the PO with Translate Toolkit and compare logical developer-note values by key, not raw wrapped PO lines; all non-empty CSV explanations must match after render/parse-back.
 
@@ -134,4 +134,4 @@ with open(output_path, "w", encoding="utf-8", newline="") as stream:
 
 ## Red flags
 
-Inferred source language; language-shaped metadata headers; generated values in intentionally empty legacy columns; blind delimiter replacement; dropped languages; preserved known-wrong rows; invented `_2` keys; guessed missing positions; readiness inferred from parseability instead of `loc_kit_ingest`; filling every placeholder or repeated string; mechanical “preserve `{0}`” notes; calling `*Text`/reply a sibling alternative; inferred speaker/addressee from a key alone; treating `RefuseText`/reply as proof without a sibling option; claiming PO comments are DB `Unit.explanation`.
+Source language derived from column order, population or filenames instead of the `ru` default plus a stated correction; leaving the `ru` default in place after the kit contradicted it; language-shaped metadata headers; generated values in intentionally empty legacy columns; blind delimiter replacement; dropped languages; preserved known-wrong rows; invented `_2` keys; guessed missing positions; readiness inferred from parseability instead of `loc_kit_ingest`; filling every placeholder or repeated string; mechanical “preserve `{0}`” notes; calling `*Text`/reply a sibling alternative; inferred speaker/addressee from a key alone; treating `RefuseText`/reply as proof without a sibling option; claiming PO comments are DB `Unit.explanation`.

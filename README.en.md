@@ -47,11 +47,15 @@ The order matters: each step consumes the previous step's artifact. See
 
 ## How the skills behave
 
+- **Russian is the default source language.** Hero Craft kits are authored in
+  Russian, so the skills confirm `ru` instead of asking, and record the
+  assumption in the report. Another source language requires an explicit
+  statement, or kit evidence contradicting the default; deriving it from column
+  order stays forbidden, because Weblate's source language is immutable.
 - **They ask instead of guessing.** Each one opens with a short interview:
-  source language, meaning of the columns, register, profanity policy,
-  glossary state. No answer means no invented fact. Interviews and reports are
-  conducted in Russian; machine-readable headers, language codes and flag
-  tokens stay in English.
+  meaning of the columns, register, profanity policy, glossary state. No answer
+  means no invented fact. Interviews and reports are conducted in Russian;
+  machine-readable headers, language codes and flag tokens stay in English.
 - **They never deploy.** File-level work only: no queries against a live
   Weblate, no filling of empty cells, no paid model calls. The deliverable is
   a file or a block of text a human reviews and applies.
