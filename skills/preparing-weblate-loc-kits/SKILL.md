@@ -1,6 +1,6 @@
 ---
 name: preparing-weblate-loc-kits
-description: "Use when converting a game localization kit or string export—CSV, TSV, XLSX, TXT, or custom-delimited text—for import through the HCGameLoc Weblate component-creation interface."
+description: "Use when converting a game localization kit or string export—CSV, TSV, XLSX, TXT, or custom-delimited text—for import through the HCGameLoc Weblate component-creation interface, or when a game team asks for a string-delivery template."
 ---
 
 # Preparing Weblate loc kits
@@ -25,26 +25,46 @@ Investigate file-provided facts—encoding, delimiter, escaping, sheets, columns
 Produce semicolon-delimited UTF-8 CSV with standard quoting:
 
 ```text
-key;<metadata columns>;<source-language>;<all target languages>;Explanation
+key;Character;<other metadata columns>;<source-language>;<all target languages>;Explanation
 ```
 
-The reference schema is authoritative for metadata roles and order. Retain every resolved language from the source even when absent from the reference. Put the settled source language first—`ru` unless the user stated another one—then targets in their original input order unless the reference explicitly fixes language order. `key` becomes the PO unit identity. `Explanation` is optional unless the reference contains it or the user asks to create contextual explanations; then keep the exact `Explanation` header as the last column. Empty cells are normal.
+The reference schema is authoritative for metadata roles and order. Retain every resolved language from the source even when absent from the reference. Put the settled source language first—`ru` unless the user stated another one—then targets in their original input order unless the reference explicitly fixes language order. `key` becomes the PO unit identity. `Character` is the canonical speaker column and comes directly after `key`; keep it even when only a few dialogue rows populate it. `Explanation` is optional unless the reference contains it or the user asks to create contextual explanations; then keep the exact `Explanation` header as the last column. Empty cells are normal.
 
 A metadata header that resembles a language code is dangerous: `Id` can mean Indonesian. Rename a legacy engine column descriptively, for example `Unity legacy ID`. If its values are intentionally empty, keep them empty; the importer will ignore the column. If an authoritative numeric ID exists, retain it as a location reference. Do not populate an empty legacy column with generated values unless the user explicitly requests that behavior.
 
-For a Russian-source kit containing English, Simplified Chinese, Traditional Chinese, Korean, and Japanese, with an intentionally empty Unity legacy column:
+For a Russian-source kit containing English, Simplified Chinese, Traditional Chinese, Korean, and Japanese, with a speaker column and an intentionally empty Unity legacy column:
 
 ```text
-key;Unity legacy ID;ru;en;zh-Hans;zh-Hant;ko;ja;Explanation
+key;Character;Unity legacy ID;ru;en;zh-Hans;zh-Hant;ko;ja;Explanation
 ```
 
 Use codes recognized by `loc_kit_ingest/langcode.py`; bare `zh` is not recognized here, so distinguish `zh-Hans` and `zh-Hant`. Unknown translations and absent explanations stay empty.
+
+## `Character` and `Explanation` reach different destinations
+
+A string kit carries context in two places, and the difference is not cosmetic:
+
+- **`Explanation`** (headers `explanation`/`explanations`/`пояснение`/`пояснения`, `loc_kit_ingest/infer.py`) becomes a scalar profile field and is never rendered into a PO file. The component-creation wizard collects a key → explanation map (`weblate/utils/views.py`) and applies it to `Unit.explanation` through `Component.apply_loc_kit_explanations` once translations exist. It is editable in Weblate afterwards, needs `source.edit` to apply at all, and on a later string update a non-empty explanation survives unless the operator ticks "Overwrite existing, non-empty Explanations" (`weblate/trans/forms.py`).
+- **Every other populated prose column**—`Character` being the canonical one—is declared in profile `comments` and rendered as a `#.` developer note in the source-language PO only. Weblate exposes it as `Unit.note`: read-only in the interface and refreshed from the file on every re-upload.
+- Both arrive at the LLM as separate prompt fields, `explanation` and `note` (`weblate/machinery/llm.py`), and the prompt tells the model to use the note to choose register, gender agreement and tone. A `note` identical to the `explanation` is dropped, so duplicating the speaker in both columns wastes the field.
+
+Therefore: the file is the producer's channel and is overwritten by the next export; the database is the localization team's accumulated knowledge and is not. Put the speaker's name—one word, nothing else—in `Character`, and write in `Explanation` only what the name does not already say. `Character` belongs to dialogue, replies and barks; UI labels, item names and notifications leave it empty.
+
+Never name a column `flags`, `weblate-flags` or `флаги` in a string kit: inference consumes it as scalar metadata, and nothing applies it to a string component, so its content silently disappears. `Comment`, `Context` and `Note` headers are safe—they become developer notes exactly like `Character`.
+
+## Template to hand a producer
+
+When a game team asks how to deliver strings, hand them [`assets/loc-kit-template.csv`](assets/loc-kit-template.csv) instead of describing the format in prose. It ships the canonical column order, UTF-8 with BOM so Excel keeps Cyrillic through a round trip, semicolon delimiters, and thirteen rows that each demonstrate exactly one rule: a character limit, call-to-action wording, a dialogue line with speaker and register, a self-explanatory reply with an empty `Explanation`, a lowercase continuation fragment naming its owner, two sibling player-choice rows that reference each other, an unknown-gender addressee, two positional placeholders of different types, a glossary-bound term, Unity markup, the `$` line separator, and one row carrying no context at all.
+
+Give the producer the rule in two sentences: `Character` holds the speaker's name and nothing else; `Explanation` holds anything a translator cannot see in the string itself. When unsure, write into `Explanation`—an empty cell beats a guess, because wrong context is not verified, it is believed.
+
+The template passes the gate as shipped: 13 units, 0 skipped, `Character` mapped to a developer comment, `Explanation` to explanation metadata.
 
 ## Creating `Explanation` fields
 
 `Explanation` describes **where and how this exact string is used**, not what its words mean. Write it in the confirmed explanation language; default to the source language. Create a value only when the available evidence answers a question the string itself does not:
 
-- speaker, addressee, gender, tone, or whether a row is dialogue, narration, UI, notification, or a selectable option;
+- addressee, gender, tone, or whether a row is dialogue, narration, UI, notification, or a selectable option—the speaker itself belongs in `Character`, and goes here only when the kit has no such column;
 - a fragment's owner and concatenation order, required case, capitalization, or grammatical agreement;
 - what a placeholder contains when its type or grammar is not already explicit;
 - which in-game sense an ambiguous/repeated string has;
@@ -70,7 +90,7 @@ Required decisions for these evidence patterns (matching rows MUST follow them; 
 
 A bare repeated value does not prove either sense. For choice labels, require at least two mutually exclusive option-label rows with the same scene stem. `*Text` and reply describe one branch and never count as an alternative. Therefore `Refuse` with only `RefuseText`/reply MUST stay blank; annotate it only when an actual sibling option row is present. When proven, describe only the selectable-option role; do not infer an addressee or consequence.
 
-For PO loc kits, each populated non-language prose column declared in profile `comments` becomes a separate developer note in column order; `Explanation` neither overwrites nor absorbs existing Context/Character columns. The renderer writes these as `#.` notes **only in the source-language PO**. Both CLI inference (without `--source-lang`) and the UI choose the leftmost populated language column, so ordering is load-bearing. This is not glossary TBX explanation and does not by itself prove Weblate `Unit.explanation` behavior. Verify the rendered source-language PO, not only the CSV.
+For PO loc kits, each populated non-language prose column declared in profile `comments` becomes a separate developer note in column order. `Explanation` is not one of them: it is a scalar profile field with its own destination, so it neither overwrites nor absorbs a Context or Character column. Both CLI inference (without `--source-lang`) and the UI choose the leftmost populated language column, so ordering is load-bearing. Verify the rendered source-language PO for the notes and the profile's own `explanation` block for the explanations—never only the CSV.
 
 ## Workflow
 
@@ -96,10 +116,11 @@ uv run python -m loc_kit_ingest "NAME.import.csv" --source-lang ru --out /tmp/lo
 
 When `Explanation` is populated, inspect the generated PO profile and source-language PO:
 
-- `comments` maps `Explanation` and every retained prose metadata column separately, in column order;
+- profile `comments` lists every retained prose metadata column in column order, while profile `explanation` names the `Explanation` column; the two never share a destination;
 - `source_lang` equals the settled source language (`ru` by default);
-- only that language's PO contains the generated `#.` developer comments;
-- parse the PO with Translate Toolkit and compare logical developer-note values by key, not raw wrapped PO lines; all non-empty CSV explanations must match after render/parse-back.
+- only that language's PO contains the generated `#.` developer comments, and no `Explanation` text appears in any PO;
+- parse the PO with Translate Toolkit and compare logical developer-note values by key, not raw wrapped PO lines; every non-empty prose metadata cell must match after render/parse-back;
+- explanation text is absent from the CLI output by design: it reaches `Unit.explanation` only through the component-creation wizard, so verify the parsed key → explanation map or the wizard's own applied count instead of grepping the PO.
 
 Do not use `infer_glossary_profile` for this check: it validates TBX term tables, not keyed PO string kits.
 
@@ -129,9 +150,12 @@ with open(output_path, "w", encoding="utf-8", newline="") as stream:
 | Empty key | Quarantine: identity is unresolved |
 | Empty target | Keep empty; report warning; the unit must still count toward `0 skipped` |
 | Explanation requested | Populate only evidence-backed usage context; blanks are normal |
-| `Explanation` present | Verify `comments`, `source_lang`, and source-PO `#.` notes |
+| Speaker known | `Character` = the name only; never repeat it in `Explanation` |
+| Team asks for a delivery format | Hand `assets/loc-kit-template.csv`; do not paraphrase it |
+| Column named `flags` in a string kit | Rename it: the importer swallows it and nothing applies it |
+| `Explanation` present | Verify profile `explanation`, `source_lang`, and that no `Explanation` text landed in a PO |
 | Any ERROR | Not ready |
 
 ## Red flags
 
-Source language derived from column order, population or filenames instead of the `ru` default plus a stated correction; leaving the `ru` default in place after the kit contradicted it; language-shaped metadata headers; generated values in intentionally empty legacy columns; blind delimiter replacement; dropped languages; preserved known-wrong rows; invented `_2` keys; guessed missing positions; readiness inferred from parseability instead of `loc_kit_ingest`; filling every placeholder or repeated string; mechanical “preserve `{0}`” notes; calling `*Text`/reply a sibling alternative; inferred speaker/addressee from a key alone; treating `RefuseText`/reply as proof without a sibling option; claiming PO comments are DB `Unit.explanation`.
+Source language derived from column order, population or filenames instead of the `ru` default plus a stated correction; leaving the `ru` default in place after the kit contradicted it; language-shaped metadata headers; generated values in intentionally empty legacy columns; blind delimiter replacement; dropped languages; preserved known-wrong rows; invented `_2` keys; guessed missing positions; readiness inferred from parseability instead of `loc_kit_ingest`; filling every placeholder or repeated string; mechanical “preserve `{0}`” notes; calling `*Text`/reply a sibling alternative; inferred speaker/addressee from a key alone; treating `RefuseText`/reply as proof without a sibling option; the speaker duplicated in both `Character` and `Explanation`; a `flags` column in a string kit; claiming `Explanation` becomes a PO `#.` note; claiming PO comments are DB `Unit.explanation`.

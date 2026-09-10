@@ -1,0 +1,14 @@
+﻿key;Character;ru;en;Explanation
+ui_settings_title;;Настройки;Settings;Заголовок экрана настроек. Максимум 18 символов.
+ui_raid_start;;Начать рейд;Start raid;Кнопка на главном экране. Призыв к действию, а не название раздела.
+dlg_ch01_asuna_wake;Асуна;Леон, вставай. Мы уже приехали.;Leon, wake up. We're here.;Будит Леона в машине. Обращение неформальное, они близкие друзья.
+dlg_ch01_leon_reply;Леон;Ещё пять минут...;Five more minutes...;
+dlg_ch01_asuna_nag;Асуна;и фары не забудь выключить;and don't forget the headlights;Продолжение реплики dlg_ch01_asuna_wake, выводится следом в том же окне. Строчная буква намеренная.
+dlg_ch01_choice_agree;Игрок;Хорошо, идём.;All right, let's go.;Вариант ответа игрока в диалоге с Асуной. Второй вариант — dlg_ch01_choice_refuse.
+dlg_ch01_choice_refuse;Игрок;Я останусь в машине.;I'll stay in the car.;Вариант ответа игрока в том же диалоге. Первый вариант — dlg_ch01_choice_agree.
+dlg_ch02_guard_hail;Стражник;Стой! Кто идёт?;Halt! Who goes there?;Первое обращение стражника к игроку. Пол игрока заранее неизвестен.
+dlg_ch02_smith_wage;Кузнец;Выплатил {0} жалованье: {1} монет.;Paid {0} a wage of {1} coins.;{0} — имя работника, {1} — целое число монет. Пол работника заранее неизвестен.
+reward_shards;;Получено {0} осколков бездны;You received {0} Abyss Shards;{0} — целое число. Термин «осколок бездны» брать только из глоссария.
+warn_low_hp;;<color=#FF0000>Мало здоровья!</color>;<color=#FF0000>Low health!</color>;Всплывающее предупреждение в бою. Разметка Unity, теги не трогать.
+hint_dock;;Пришвартуйся у пирса$и поговори с Хадзуо;Dock at the pier$and talk to Hazuo;Подсказка в две строки. $ — разделитель строк движка, пробелов вокруг быть не должно.
+item_sword_name;;Меч бездны;Abyss Sword;
