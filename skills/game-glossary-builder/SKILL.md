@@ -14,7 +14,8 @@ of extracting terms.
 Keep these instructions in English. Conduct interviews, progress updates and
 reports in plain Russian. Explain terms as “язык оригинала”, “переводы”,
 “пояснение” and “особое правило”; do not expose pipeline jargon. Explanation text
-in the file defaults to Russian unless the producer specifies another language.
+in the file defaults to the settled source language unless the producer specifies
+another language.
 Exact CSV headers and flag tokens remain machine-readable English.
 
 This skill prepares files, not a live Weblate project. Do not query repositories
@@ -25,15 +26,25 @@ only to review/edit the skill, do not resume their glossary or interview them.
 
 ## Output contract
 
-Output a UTF-8 CSV with proper CSV quoting, a header and one row per source term:
+Output a UTF-8 CSV with proper CSV quoting, a header and one row per source term.
+The two equally valid shapes are:
+
+Russian source:
 
 ```csv
 ru,en,explanation,flags
 Железо,Iron,Ресурс для изготовления предметов.,
 ```
 
-Use the source language first — Russian (`ru`) by default, because Hero Craft
-kits are authored in Russian — then selected target languages in input order,
+English source:
+
+```csv
+en,ru,explanation,flags
+Iron,Железо,Resource used to craft items.,
+```
+
+Use the settled source language first — `ru` or `en`, whichever the producer
+chose for the string component — then selected target languages in input order,
 then exactly `explanation,flags`. Keep the `flags` column even when every cell is
 empty. No technical keys, sections, approval-status tags or invented columns.
 A source term may have several target languages in the same row. The example
@@ -61,14 +72,21 @@ measuring the file. No pre-interview scan and no invented term-count estimates. 
   Steam или другом магазине. Если страницы ещё нет — название и краткое описание.”
   If they have no link, research by title and developer after the interview;
   confirm uncertain identity. An unreleased game is not a reason to refuse.
-- The original language, confirmed rather than opened: Russian (`ru`) is the
-  default, so ask for a correction only — “Исходный язык — русский, верно?”.
-  Record the answer either way, and state the assumption in the report when the
-  producer does not answer. Switch away from `ru` only on an explicit statement
-  or on kit evidence that contradicts it (the Russian column empty while another
-  language is fully populated). Column order alone never settles it, and a
-  separate Weblate-source clarification is needed only when the producer
-  describes a different authoring and import language.
+- The source language, offered as a real choice between two options with their
+  consequences — “Исходным языком делаем русский или английский?” — never as a
+  confirmation of one. Russian is faster and more convenient in daily work: the
+  authors, the producer and QA read the original in their own language, and the
+  glossary, its explanations and the suggestion prompts live there too. English
+  potentially raises quality into some languages when the available external
+  vendors and models work from English better than from Russian, but it has to
+  be authored and reviewed as a real original — an English column
+  machine-translated from Russian makes every target inherit an unreviewed pivot.
+  State that the choice does not change later: the component's source language
+  is immutable once it exists. If the glossary accompanies a string component that
+  exists, its source language is not a second decision — it MUST equal that
+  component's, or the terms stop matching the source text the translator sees.
+  Column order, population and apparent text quality never settle the question;
+  when the kit contradicts the answer, show that evidence and ask again.
 - Requested languages: “Для каких языков нужен глоссарий?” Offer all supplied
   languages as a scope option, not an assertion about unseen column contents.
 - Scope: “Включаем названия предметов, персонажей и мест, а также повторяющиеся

@@ -51,7 +51,7 @@ Do not write any output file before these are settled. Bring measurements to the
 2. **The residue destination.** Name the component that receives every key matching no anchor, and confirm it. "UI as catch-all" is a legitimate answer; silently dropping unmatched rows is not.
 3. **Is an existing component being replaced?** If yes, probe it read-only first (see "Replacing a live component") and report what the re-creation loses *before* the files are used, not after the old component is deleted.
 
-The source language does **not** enter the interview as an open question: `ru` is the default, per preparing-weblate-loc-kits. Confirm it, and state the assumption in the report.
+The source language is its own decision — `ru` or `en`, offered with their consequences, per preparing-weblate-loc-kits — and in a split it must be the same in every output file. When the split replaces an existing component, its current source language is a settled fact: re-creation is the one moment it could change, and changing it demotes the former source to an ordinary target, so ask for that decision explicitly instead of carrying the old value over silently.
 
 ## The boundary rule is a written contract
 
@@ -133,9 +133,10 @@ Report the identity itself — `3453 + 274 + 120 + 17 = 3864` — and the drift 
 ## Gate every output file
 
 ```bash
+: "${SOURCE_LANG:?export SOURCE_LANG=ru or SOURCE_LANG=en after the producer chooses}"
 rm -rf /tmp/loc-kit-check && mkdir -p /tmp/loc-kit-check
 for f in ui dialogues tutorial; do
-  uv run python -m loc_kit_ingest "NAME.$f.import.xlsx" --source-lang ru --out "/tmp/loc-kit-check/$f"
+  uv run python -m loc_kit_ingest "NAME.$f.import.xlsx" --source-lang "$SOURCE_LANG" --out "/tmp/loc-kit-check/$f"
 done
 ```
 

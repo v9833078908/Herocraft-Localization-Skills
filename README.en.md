@@ -49,11 +49,14 @@ needed only when one kit has to become several components. See
 
 ## How the skills behave
 
-- **Russian is the default source language.** Hero Craft kits are authored in
-  Russian, so the skills confirm `ru` instead of asking, and record the
-  assumption in the report. Another source language requires an explicit
-  statement, or kit evidence contradicting the default; deriving it from column
-  order stays forbidden, because Weblate's source language is immutable.
+- **The source language is the producer's decision, not the skill's
+  assumption.** Russian and English are offered as equals, each with its
+  consequences: Russian is faster and more convenient day to day (original,
+  explanations, glossary and prompts in the team's own language), English
+  potentially raises quality into some languages (vendors and models translate
+  from English better), but it has to be authored and reviewed as a real
+  original. The skill waits for the answer instead of applying a default, and
+  never derives the language from column order - in Weblate it is immutable.
 - **They ask instead of guessing.** Each one opens with a short interview:
   meaning of the columns, register, profanity policy, glossary state. No answer
   means no invented fact. Interviews and reports are conducted in Russian;

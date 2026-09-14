@@ -114,12 +114,16 @@ wait. Do not scan the kit for lore before the answers; measuring the file
 2. **Project and engine.** "Слаг проекта и какой движок настроен — `openrouter`
    или `litellm`?" Both use the same three fields; only one is project-wide
    (`ROUTED_ENGINES`, `weblate/trans/forms.py`).
-3. **Source language.** Russian (`ru`) is the default, so confirm rather than
-   ask: "Исходный язык — русский, верно?". Proceed on the default when there is
-   no objection and say so in the report. Never derive it from column order or
-   population; leave `ru` only on an explicit statement or on kit evidence
-   against it, and note that a Russian source is what licenses the standard
-   `style` rules about impersonal phrasing and added referents.
+3. **Source language.** By this step it is a settled fact, not a choice: the
+   component exists and its source language is immutable, so ask the producer
+   to state it from the component settings — "Исходный язык проекта — русский
+   или английский?" — rather than deriving it from column order or population.
+   The choice itself belongs to the kit step (see preparing-weblate-loc-kits, where
+   `ru` and `en` are offered with their consequences). It changes the prompt:
+   the standard `style` rules about impersonal phrasing and added referents are
+   licensed by a Russian source, so with an English source re-derive them
+   instead of copying them, and state in the report which rules the source
+   language licensed.
 4. **Target languages and codes.** "Для каких языков нужны инструкции?" Convert
    names to codes that exist in Weblate; verify with `Language.objects.fuzzy_get_strict`
    in the container, or `loc_kit_ingest/langcode.py` for kit-side codes. Always

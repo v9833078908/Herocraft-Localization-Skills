@@ -19,13 +19,19 @@ This skill produces files: an import CSV, a quarantine CSV when something was he
 
 Before writing the import file, ask the user and record:
 
-1. **Is the source language Russian?** Russian (`ru`) is the default: Hero Craft kits are authored in Russian, so ask for a correction rather than an answer — "Исходный язык — русский, верно?" — and proceed on the default when the user does not object, stating the assumption in the report. The source language is still semantic project metadata: it MUST NOT be *derived* from column order, population, filenames, or apparent text quality, and it must be the first language column because the UI infers it from that position. Leave `ru` only on an explicit statement by the user, or when the kit itself contradicts the default (an empty or clearly machine-translated Russian column beside a fully authored other language); in that case stop and confirm before writing anything.
+1. **Which language is the source: `ru` or `en`?** Put both on the table as real options with their consequences and wait for the answer. Neither is a default, and the question is asked once, because the source language is immutable after the component exists. Ask it in one message: "Исходным языком делаем русский или английский? Русский быстрее и удобнее в ежедневной работе; английский потенциально даёт выше качество на части языков. Выбор после создания компонента не меняется." — followed by the table below. The source language is semantic project metadata: it MUST NOT be *derived* from column order, population, filenames, or apparent text quality, and it must be the first language column because the UI infers it from that position. When the kit contradicts the answer — the chosen column empty, visibly thinner, or plainly machine-translated beside a fully authored one — show that evidence and ask again rather than overriding the answer yourself. Without an answer, stop before writing the import file and say so: everything that does not depend on the choice (format discovery, schema proof, language resolution, the duplicate audit) proceeds meanwhile, so waiting costs nothing.
+
+| Исходный | Что даёт | Чем платим |
+|---|---|---|
+| `ru` | Быстрее и удобнее в ежедневной работе: авторы строк, продюсер и QA читают оригинал на своём языке; пояснения, глоссарий, сообщения проверок и промпты подсказок живут на нём же; между оригиналом и переводами нет лишнего звена, которое нужно поддерживать | На части целевых языков доступные подрядчики и модели могут работать с английского лучше, чем с русского, — качество на них может выйти ниже |
+| `en` | Потенциально выше качество на части языков, если доступные там подрядчики и модели работают с английского лучше, чем с русского | Английский придётся писать и вычитывать как настоящий оригинал. Если в ките он получен машинным переводом с русского, каждый перевод унаследует невычитанный пивот, а русскоязычная команда будет вычитывать язык, на котором не пишет |
+
 2. **Which file is the structural reference?** Use it for metadata roles and ordering conventions, not as permission to discard languages absent from it.
 3. **What do key, metadata, ID, explanation, and context columns mean?** Ask whether legacy columns must remain and whether their values should be empty. If explanations must be created, confirm their language; default to the source language, not the conversation language. Never invent game identities or usage context.
 4. **How should unverifiable duplicate or malformed rows be handled?** Recommend quarantine; never guess translations or IDs.
 5. **Which regional variant does an ambiguous language header mean?** `Portugal`, `Chinese` or `Portuguese` does not settle `pt` vs `pt_BR`, or `zh_Hans` vs `zh_Hant`. Mixed wording inside the column ("aplicativos" beside "equipa") is evidence of an uneven translation, not of a locale, so ask instead of scoring vocabulary. State the default you will apply — `pt`, because `loc_kit_ingest/langcode.py` keeps `pt` as Portuguese and a per-project "pt means pt-BR" decision belongs to Weblate's project language aliases — and never relabel a real code because a game usually ships another locale.
 
-Investigate file-provided facts—encoding, delimiter, escaping, sheets, columns, and row widths—with tools rather than asking. Do not generate the final import until the source language is settled—`ru` by default, or a user-stated alternative—and metadata semantics are explicit.
+Investigate file-provided facts—encoding, delimiter, escaping, sheets, columns, and row widths—with tools rather than asking. Do not generate the final import until the source language is settled by the user's own answer—`ru` or `en`—and metadata semantics are explicit.
 
 ## Target contract
 
@@ -37,7 +43,7 @@ key;Character;<other metadata columns>;<source-language>;<all target languages>;
 
 Every column of that skeleton is mandatory, in that order. `key` becomes the PO unit identity. `Character` is the canonical speaker column and comes directly after `key`. `Explanation` is always the last column. Emit both **even when the input kit has neither a speaker nor a context column** and every cell you can honestly fill stays empty: an entirely empty non-language column costs nothing — the gate says `column 2 ('Character') is empty and is not a recognised language code; ignored` (`loc_kit_ingest/infer.py`) and the unit count is unchanged — while a missing column forces the producer to change their export schema before context can be delivered at all. Dropping a column because the input had no data for it is the wrong call; filling it with generated values is a worse one.
 
-The reference schema is authoritative for metadata roles and order. Retain every resolved language from the source even when absent from the reference. Put the settled source language first—`ru` unless the user stated another one—then targets in their original input order unless the reference explicitly fixes language order. Empty cells are normal.
+The reference schema is authoritative for metadata roles and order. Retain every resolved language from the source even when absent from the reference. Put the settled source language first—then targets in their original input order unless the reference explicitly fixes language order. Empty cells are normal.
 
 A metadata header that resembles a language code is dangerous: `Id` can mean Indonesian. Rename a legacy engine column descriptively, for example `Unity legacy ID`. If its values are intentionally empty, keep them empty; the importer will ignore the column. If an authoritative numeric ID exists, retain it as a location reference. Do not populate an empty legacy column with generated values unless the user explicitly requests that behavior.
 
@@ -128,18 +134,23 @@ For PO loc kits, each populated non-language prose column declared in profile `c
 6. **Run the gate:**
 
 ```bash
-rm -rf /tmp/loc-kit-check
-uv run python -m loc_kit_ingest "NAME.import.csv" --source-lang ru --out /tmp/loc-kit-check
+: "${SOURCE_LANG:?export SOURCE_LANG=ru or SOURCE_LANG=en after the producer chooses}"
+OUT_PARENT=/tmp/loc-kit-check
+rm -rf "$OUT_PARENT" && mkdir -p "$OUT_PARENT"
+uv run python -m loc_kit_ingest "NAME.import.csv" --source-lang "$SOURCE_LANG" --out "$OUT_PARENT/render"
 ```
+`loc_kit_ingest` requires the output parent to exist but rejects an output directory
+that already exists, so create `OUT_PARENT` and pass a new child such as `render`.
 
-`--source-lang` is mandatory even though column order should infer the same result; pass `ru` unless the user stated another source language. Ready means exit 0, expected counts, 0 skipped, the settled source language, every expected resolved language, and no ERROR diagnostics. Read the profile lines the gate prints, not only its verdict: every language column must appear with its own resolved code, `column N ('Explanation') -> explanation metadata` must be present whenever that column exists, and any column reported as ignored or excluded must be one you meant to leave empty. Opening the file in a spreadsheet is not proof.
+
+`--source-lang` is mandatory even though column order should infer the same result; pass the language the user settled on, `ru` or `en`, never a guess. Ready means exit 0, expected counts, 0 skipped, the settled source language, every expected resolved language, and no ERROR diagnostics. Read the profile lines the gate prints, not only its verdict: every language column must appear with its own resolved code, `column N ('Explanation') -> explanation metadata` must be present whenever that column exists, and any column reported as ignored or excluded must be one you meant to leave empty. Opening the file in a spreadsheet is not proof.
 
 Triage every warning; most are content facts rather than conversion defects. `po.target_equals_source` and `po.wrong_script` fire on brand names, item codes and pure formulas (`Dead Shell`, `xray m2`, ` + 50% HP`) that legitimately repeat across languages. Report them as questions for the producer — "should the event name be translated?" — and never silence one by editing a translation.
 
 When `Explanation` is populated, inspect the generated PO profile and source-language PO:
 
 - profile `comments` lists every retained prose metadata column in column order, while profile `explanation` names the `Explanation` column; the two never share a destination;
-- `source_lang` equals the settled source language (`ru` by default);
+- `source_lang` equals the settled source language;
 - only that language's PO contains the generated `#.` developer comments, and no `Explanation` text appears in any PO;
 - parse the PO with Translate Toolkit and compare logical values by key, not raw wrapped PO lines. In a keyed PO kit the key is the `msgid`: `unit.getid()` returns it while `unit.getcontext()` is empty, so a comparison keyed on the context matches nothing and looks like total corruption;
 - explanation text is absent from the CLI output by design: it reaches `Unit.explanation` only through the component-creation wizard, so verify the parsed key → explanation map instead of grepping the PO.
@@ -175,7 +186,9 @@ with open(output_path, "w", encoding="utf-8", newline="") as stream:
 
 | Symptom | Action |
 |---|---|
-| Source language unspecified | Interview user; do not infer |
+| Source language unsettled | Offer `ru` and `en` with their consequences; wait for the answer; never infer |
+| Producer asks which source is better | Answer with both columns of the tradeoff table, not a recommendation dressed as a fact |
+| Kit contradicts the chosen source | Show the evidence, ask again; never override the answer yourself |
 | `Id` means legacy engine field | Rename descriptively; preserve intended blanks |
 | Unknown/misleading extension | Detect from bytes and content |
 | Additional language | Resolve and retain it |
@@ -202,7 +215,7 @@ with open(output_path, "w", encoding="utf-8", newline="") as stream:
 
 ## Red flags
 
-Source language derived from column order, population or filenames instead of the `ru` default plus a stated correction; leaving the `ru` default in place after the kit contradicted it; language-shaped metadata headers; spelled-out language names left in the header row; a language quietly dropped by the fill threshold; decoding with `errors="replace"`; generated values in intentionally empty legacy columns; `Character` or `Explanation` omitted because the input had no such column; blind delimiter replacement; dropped languages; preserved known-wrong rows; invented `_2` keys; guessed missing positions; readiness inferred from parseability instead of `loc_kit_ingest`; filling every placeholder or repeated string; mechanical “preserve `{0}`” notes; a warning silenced by editing a translation; calling `*Text`/reply a sibling alternative; inferred speaker/addressee from a key alone; treating `RefuseText`/reply as proof without a sibling option; the speaker duplicated in both `Character` and `Explanation`; a `flags` column in a string kit; claiming `Explanation` becomes a PO `#.` note; claiming PO comments are DB `Unit.explanation`.
+Source language derived from column order, population or filenames instead of the user's own choice between `ru` and `en`; the choice delivered as a confirmation of one language instead of two options with their costs; one option recommended as fact while its price goes unmentioned; the import file written before the answer arrived; the answer overridden because the kit looked otherwise, instead of showing the evidence and asking again; language-shaped metadata headers; spelled-out language names left in the header row; a language quietly dropped by the fill threshold; decoding with `errors="replace"`; generated values in intentionally empty legacy columns; `Character` or `Explanation` omitted because the input had no such column; blind delimiter replacement; dropped languages; preserved known-wrong rows; invented `_2` keys; guessed missing positions; readiness inferred from parseability instead of `loc_kit_ingest`; filling every placeholder or repeated string; mechanical “preserve `{0}`” notes; a warning silenced by editing a translation; calling `*Text`/reply a sibling alternative; inferred speaker/addressee from a key alone; treating `RefuseText`/reply as proof without a sibling option; the speaker duplicated in both `Character` and `Explanation`; a `flags` column in a string kit; claiming `Explanation` becomes a PO `#.` note; claiming PO comments are DB `Unit.explanation`.
 
 ## Report
 

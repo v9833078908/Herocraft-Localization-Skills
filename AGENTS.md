@@ -1,7 +1,7 @@
 # Repository guidance for agents
 
-This repository distributes three Agent Skills for Hero Craft game
-localization. It contains no application code: the product is the prose inside
+This repository distributes four Agent Skills for Hero Craft game localization.
+It contains no application code: the product is the prose inside
 `skills/*/SKILL.md`.
 
 ## Layout
@@ -45,4 +45,5 @@ Edit `AGENTS.md`; never replace the symlink with a second copy.
 - `docs/compatibility.md` claims must each carry a link to official
   documentation. If a harness does not document a path, write "not documented"
   instead of guessing, and do not add it to `install.sh`.
-- Version entries in `CHANGELOG.md` are calendar-based (`YYYY.MM`).
+- Version entries in `CHANGELOG.md` are calendar-based (`YYYY.MM`); subsequent
+  releases in one month use `YYYY.MM.N`.
