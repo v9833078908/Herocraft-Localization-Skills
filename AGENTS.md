@@ -12,7 +12,7 @@ localization. It contains no application code: the product is the prose inside
 | `install.sh` | installs the skills into every harness on the machine |
 | `tools/validate_skills.py` | the only quality gate; also runs in CI |
 | `docs/compatibility.md` | per-harness discovery paths with source URLs |
-| `docs/workflow.md` | how the three skills chain together |
+| `docs/workflow.md` | how the skills chain together |
 | `examples/demo-kit/` | fictional sample data, safe to use in public |
 
 `CLAUDE.md` is a symlink to this file, because Claude Code reads `CLAUDE.md`

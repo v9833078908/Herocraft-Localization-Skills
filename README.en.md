@@ -1,8 +1,8 @@
 # Hero Craft Localization Skills
 
-**Three agent skills that turn a raw game string export into a working
-localization project: the import kit, the glossary, and the prompts of the
-automatic-suggestion engine.**
+**Four agent skills that turn a raw game string export into a working
+localization project: the import kit, the split into components, the glossary,
+and the prompts of the automatic-suggestion engine.**
 
 [Русский](README.md) · English
 
@@ -39,10 +39,12 @@ which skills are available.
 | Step | Skill | What it does | When to call it |
 |---|---|---|---|
 | 1 | [`preparing-weblate-loc-kits`](skills/preparing-weblate-loc-kits/SKILL.md) | Converts a CSV/TSV/XLSX/TXT export into a file the component-creation UI accepts, without dropping languages or inventing keys | "A kit arrived from the developers and has to go into Weblate" |
+| 1a | [`splitting-loc-kits-into-components`](skills/splitting-loc-kits-into-components/SKILL.md) | Splits one kit into several components: the human confirms the boundary rule, the conservation of every cell is proved by machine | "One component has to become UI, Dialogues and Tutorial" |
 | 2 | [`game-glossary-builder`](skills/game-glossary-builder/SKILL.md) | Builds the glossary from the same kit: terms, translations, explanations, and - as a separate decision - exception flags | "We need a glossary for a new project" |
 | 3 | [`weblate-machinery-prompts`](skills/weblate-machinery-prompts/SKILL.md) | Writes `persona`, `style` and `language_instructions` for `/machinery/<project>/<engine>/` from evidence in the kit and the glossary | "Configure the suggestion and judge prompts" |
 
-The order matters: each step consumes the previous step's artifact. See
+The order matters: each step consumes the previous step's artifact. Step 1a is
+needed only when one kit has to become several components. See
 [docs/workflow.md](docs/workflow.md).
 
 ## How the skills behave
@@ -113,7 +115,7 @@ without using git.
 ## Trust and security
 
 A skill is a set of instructions your agent executes. Install skills only from
-sources you trust, and read the `SKILL.md` first - there are three files here,
+sources you trust, and read the `SKILL.md` first - there are four files here,
 each of a reviewable size. No skill in this repository reaches out to external
 network sources or asks for pre-approved command execution.
 
