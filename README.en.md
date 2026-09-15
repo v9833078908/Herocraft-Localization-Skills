@@ -65,8 +65,9 @@ needed only when one kit has to become several components. See
   Weblate, no filling of empty cells, no paid model calls. The deliverable is
   a file or a block of text a human reviews and applies.
 - **They verify.** A kit counts as ready only after a `loc_kit_ingest` run; the
-  prompts only after the form and the rendered prompt were exercised in the
-  HCGameLoc dev container.
+  prompts always get field-length and JSON checks, plus a run of the form and
+  the rendered prompt in the dev container when the agent works inside
+  HCGameLoc.
 
 ## Compatibility
 
