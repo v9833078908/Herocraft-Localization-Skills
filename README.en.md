@@ -1,8 +1,9 @@
 # Hero Craft Localization Skills
 
-**Four agent skills that turn a raw game string export into a working
-localization project: the import kit, the split into components, the glossary,
-and the prompts of the automatic-suggestion engine.**
+**Five agent skills that turn a raw game string export into a working
+localization project and check the result: the import kit, the split into
+components, the glossary, the prompts of the automatic-suggestion engine, and
+the quality check of a finished translation.**
 
 [Русский](README.md) · English
 
@@ -42,9 +43,11 @@ which skills are available.
 | 1a | [`splitting-loc-kits-into-components`](skills/splitting-loc-kits-into-components/SKILL.md) | Splits one kit into several components: the human confirms the boundary rule, the conservation of every cell is proved by machine | "One component has to become UI, Dialogues and Tutorial" |
 | 2 | [`game-glossary-builder`](skills/game-glossary-builder/SKILL.md) | Builds the glossary from the same kit: terms, translations, explanations, and - as a separate decision - exception flags | "We need a glossary for a new project" |
 | 3 | [`weblate-machinery-prompts`](skills/weblate-machinery-prompts/SKILL.md) | Writes `persona`, `style` and `language_instructions` for `/machinery/<project>/<engine>/` from evidence in the kit and the glossary | "Configure the suggestion and judge prompts" |
+| 4 | [`checking-translation-quality`](skills/checking-translation-quality/SKILL.md) | Checks a downloaded translation file: a "can it ship" verdict, a quality score and a spreadsheet of fixes for the translator | "I downloaded the translation, can it ship?" |
 
 The order matters: each step consumes the previous step's artifact. Step 1a is
-needed only when one kit has to become several components. See
+needed only when one kit has to become several components. Step 4 can be
+called on its own, on any finished translation. See
 [docs/workflow.md](docs/workflow.md).
 
 ## How the skills behave
@@ -63,11 +66,14 @@ needed only when one kit has to become several components. See
   machine-readable headers, language codes and flag tokens stay in English.
 - **They never deploy.** File-level work only: no queries against a live
   Weblate, no filling of empty cells, no paid model calls. The deliverable is
-  a file or a block of text a human reviews and applies.
+  a file or a block of text a human reviews and applies. The one exception is
+  the quality check: when the producer sends a translation link and an API key
+  themselves, it reads the strings from the server without changing anything.
 - **They verify.** A kit counts as ready only after a `loc_kit_ingest` run; the
   prompts always get field-length and JSON checks, plus a run of the form and
   the rendered prompt in the dev container when the agent works inside
-  HCGameLoc.
+  HCGameLoc. The translation quality score is computed by a script, not
+  estimated by the agent.
 
 ## Compatibility
 
@@ -119,9 +125,11 @@ without using git.
 ## Trust and security
 
 A skill is a set of instructions your agent executes. Install skills only from
-sources you trust, and read the `SKILL.md` first - there are four files here,
-each of a reviewable size. No skill in this repository reaches out to external
-network sources or asks for pre-approved command execution.
+sources you trust, and read the `SKILL.md` first - there are only a few files
+here, each of a reviewable size. Only `checking-translation-quality` uses the
+network, and only when the producer sends a Weblate link and an API key
+themselves: its script reads that translation's strings and changes nothing on
+the server. No skill asks for pre-approved command execution.
 
 ## License
 

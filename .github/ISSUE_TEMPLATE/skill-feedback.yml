@@ -17,6 +17,7 @@ body:
         - preparing-weblate-loc-kits (подготовка кита)
         - game-glossary-builder (глоссарий)
         - weblate-machinery-prompts (промпты движка)
+        - checking-translation-quality (проверка качества перевода)
         - не знаю / несколько
     validations:
       required: true
