@@ -1,12 +1,14 @@
 # Repository guidance for agents
 
-This repository distributes five Agent Skills for Hero Craft game localization.
+This repository distributes six Agent Skills for Hero Craft game localization.
 It contains no application code: the product is the prose inside
-`skills/*/SKILL.md`. The one exception is
-`skills/checking-translation-quality/scripts/lqa.py`, a standard-library-only
-file reader and score calculator, kept in code because producers' files and
-the scoring arithmetic must not depend on the agent reading XLSX or counting by
-eye.
+`skills/*/SKILL.md`. The exceptions are standard-library-only scripts kept in
+code because producers' files, file formats and server calls must not depend
+on the agent reading XLSX, rendering PO/TBX or counting by eye:
+`skills/checking-translation-quality/scripts/lqa.py` (file reader and score
+calculator) and `skills/setting-up-weblate-projects/scripts/` (`inspect_inputs.py`
+inventories any pack, `build_upload.py` renders the same PO/TBX files as
+HCGameLoc's `loc_kit_ingest`, `publish.py` publishes through the REST API).
 
 ## Layout
 

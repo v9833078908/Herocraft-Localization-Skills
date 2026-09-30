@@ -1,9 +1,10 @@
 # Hero Craft Localization Skills
 
-**Five agent skills that turn a raw game string export into a working
+**Six agent skills that turn a raw game string export into a working
 localization project and check the result: the import kit, the split into
-components, the glossary, the prompts of the automatic-suggestion engine, and
-the quality check of a finished translation.**
+components, the glossary, the prompts of the automatic-suggestion engine,
+publishing the project to the server, and the quality check of a finished
+translation.**
 
 [Русский](README.md) · English
 
@@ -39,13 +40,16 @@ which skills are available.
 
 | Step | Skill | What it does | When to call it |
 |---|---|---|---|
+| 0 | [`setting-up-weblate-projects`](skills/setting-up-weblate-projects/SKILL.md) | The orchestrator: takes a pack of any shape and completeness, asks once, runs steps 1-3 itself and publishes the finished project through the API - strings, explanations, glossary, prompts | "Here is the pack from the team, set up the project in Weblate" |
 | 1 | [`preparing-weblate-loc-kits`](skills/preparing-weblate-loc-kits/SKILL.md) | Converts a CSV/TSV/XLSX/TXT export into a file the component-creation UI accepts, without dropping languages or inventing keys | "A kit arrived from the developers and has to go into Weblate" |
 | 1a | [`splitting-loc-kits-into-components`](skills/splitting-loc-kits-into-components/SKILL.md) | Splits one kit into several components: the human confirms the boundary rule, the conservation of every cell is proved by machine | "One component has to become UI, Dialogues and Tutorial" |
 | 2 | [`game-glossary-builder`](skills/game-glossary-builder/SKILL.md) | Builds the glossary from the same kit: terms, translations, explanations, and - as a separate decision - exception flags | "We need a glossary for a new project" |
 | 3 | [`weblate-machinery-prompts`](skills/weblate-machinery-prompts/SKILL.md) | Writes `persona`, `style` and `language_instructions` for `/machinery/<project>/<engine>/` from evidence in the kit and the glossary | "Configure the suggestion and judge prompts" |
 | 4 | [`checking-translation-quality`](skills/checking-translation-quality/SKILL.md) | Checks a downloaded translation file: a "can it ship" verdict, a quality score and a spreadsheet of fixes for the translator | "I downloaded the translation, can it ship?" |
 
-The order matters: each step consumes the previous step's artifact. Step 1a is
+The order matters: each step consumes the previous step's artifact. Step 0
+runs steps 1-3 on the producer's behalf and takes the result to the server;
+steps 1-3 can still be called on their own. Step 1a is
 needed only when one kit has to become several components. Step 4 can be
 called on its own, on any finished translation. See
 [docs/workflow.md](docs/workflow.md).
@@ -64,11 +68,15 @@ called on its own, on any finished translation. See
   meaning of the columns, register, profanity policy, glossary state. No answer
   means no invented fact. Interviews and reports are conducted in Russian;
   machine-readable headers, language codes and flag tokens stay in English.
-- **They never deploy.** File-level work only: no queries against a live
-  Weblate, no filling of empty cells, no paid model calls. The deliverable is
-  a file or a block of text a human reviews and applies. The one exception is
-  the quality check: when the producer sends a translation link and an API key
-  themselves, it reads the strings from the server without changing anything.
+- **Nothing is deployed without a "yes".** Steps 1-4 work on files only: no
+  queries against a live Weblate, no filling of empty cells, no paid model
+  calls. The deliverable is a file or a block of text a human reviews and
+  applies. The quality check may read strings from the server when the
+  producer sends a link and an API key themselves, and changes nothing. The
+  only skill that writes to the server is the orchestrator
+  `setting-up-weblate-projects`: it creates a new project only, with the
+  producer's key, and only after the producer has seen the publication plan
+  and answered "yes".
 - **They verify.** A kit counts as ready only after a `loc_kit_ingest` run; the
   prompts always get field-length and JSON checks, plus a run of the form and
   the rendered prompt in the dev container when the agent works inside
@@ -126,10 +134,13 @@ without using git.
 
 A skill is a set of instructions your agent executes. Install skills only from
 sources you trust, and read the `SKILL.md` first - there are only a few files
-here, each of a reviewable size. Only `checking-translation-quality` uses the
-network, and only when the producer sends a Weblate link and an API key
-themselves: its script reads that translation's strings and changes nothing on
-the server. No skill asks for pre-approved command execution.
+here, each of a reviewable size. Two skills use the network, and only with an
+API key the producer supplied. `checking-translation-quality` reads one
+translation's strings and changes nothing on the server.
+`setting-up-weblate-projects` creates a new project on the server, but only
+after showing its plan and receiving an explicit "yes"; the key goes into the
+environment of one command and is never written anywhere. No skill asks for
+pre-approved command execution.
 
 ## License
 
